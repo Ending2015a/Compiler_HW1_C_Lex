@@ -44,14 +44,14 @@ AN	[a-zA-Z0-9]
 V	[_]*{A}({AN}|[_])*
 W	[ \t]
 WT	[ \t\v\n]
-OCM	([[:blank:]]|("/*".*"*/"))
+OCM	({W}|("/*".*"*/"))
 E	[eE][+-]?{D}+
 FS	[fF]
 DS	[lL]
 US	[uU]
 IS	(l|ll|L|LL)
 ECS	[\'\"\\\(\%\?\{0abfnrtv]
-NECS	([[:alnum:]]|[ !#$%&\()*+,-./:;<=>?@\[\]^_`\{|}~])
+NECS	({AN}|[ !#$%&\()*+,-./:;<=>?@\[\]^_`\{|}~])
 C	"\'"({NECS}|\\{ECS})"\'"
 
 %%
@@ -81,8 +81,7 @@ L?"\""			{ BEGIN(STRING); CAT; }
 <PRAGMA>{OCM}				{ CAT; }
 <PRAGMA>"//".*"\n"			{ BEGIN(INITIAL); CAT; PSOURCE; CLR; }
 <PRAGMA>"/*".*"\n"			{ BEGIN(COMMENT); CAT; PSOURCE; CLR; }
-<PRAGMA>"\n"				{ BEGIN(INITIAL); CAT; PSOURCE; CLR; }	
- /*<PRAGMA>[^ \t]				{ PERROR("some error occured"); }*/
+<PRAGMA>"\n"				{ BEGIN(INITIAL); CAT; PSOURCE; CLR; }
 
 
 "void"		{ PKEY; CAT; }
@@ -133,6 +132,8 @@ L?"\""			{ BEGIN(STRING); CAT; }
 "feof"		{ PKEY; CAT; }
 "ferror"	{ PKEY; CAT; }
 "FILE"		{ PKEY; CAT; }
+"unsigned"	{ PKEY; CAT; }
+"long"		{ PKEY; CAT; }
 
 "NULL"		{ PID; CAT; }
 "EOF"		{ PID; CAT; }
@@ -148,7 +149,7 @@ L?"\""			{ BEGIN(STRING); CAT; }
 
 0{US}?{IS}?		{ PINT; CAT; }
 [1-9]{D}*{US}?{IS}?	{ PINT; CAT; }
-0x[:xdigit:]+		{ PINT; CAT; }
+0x[[:xdigit:]]+		{ PINT; CAT; }
 {D}+{E}{FS}?		{ PSCI; CAT; }
 {D}*"."{D}+({FS}|{DS})?	{ PDUB; CAT; }
 {D}+"."{D}*({FS}|{DS})?	{ PDUB; CAT; }
@@ -184,14 +185,15 @@ L?"\""			{ BEGIN(STRING); CAT; }
 
 void Perror(char *s){
 	if(s == NULL)s = "";
-	fprintf(stderr, "Error at line %d: %s\n", lineNum, yytext);
+	fprintf(stderr, "Error at line %d: %s\n", lineNum, s);
 	exit(1);
 }
 
 void Pstrdelete(int n){
-	int i;
+	int i, l = strlen(str);
 	for(i=0;i<n;++i){
-		str[strlen(str)-1 -i] = '\0';
+		str[l-1 -i] = '\0';
+		
 	}
 }
 
